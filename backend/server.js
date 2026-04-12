@@ -45,4 +45,6 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   });
 }
 
-module.exports = app;
+module.exports = (req, res) => {
+  return app(req, res);
+};
