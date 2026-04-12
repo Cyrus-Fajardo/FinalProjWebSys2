@@ -363,4 +363,4 @@ For support, email support@kapekonek.com or open an issue in the GitHub reposito
 
 ---
 
-**Created with ❤️ for coffee farmers and buyers**
+Foutre gusto ko na matapos to
