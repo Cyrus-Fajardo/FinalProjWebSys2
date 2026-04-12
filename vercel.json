@@ -31,8 +31,8 @@
     }
   ],
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
+    "MONGODB_URI": "mongodb://fajardo_3f:7SEwc7umMMjk2hz8@ac-ajiuca3-shard-00-00.x0uhjz8.mongodb.net:27017,ac-ajiuca3-shard-00-01.x0uhjz8.mongodb.net:27017,ac-ajiuca3-shard-00-02.x0uhjz8.mongodb.net:27017/?ssl=true&replicaSet=atlas-11dbpc-shard-0&authSource=admin&appName=MyFirstDB",
+    "JWT_SECRET": "c1a35c0b8c6d9d4e9877299b512ffcc30da424f325e35860b415d44078ca6638",
     "NODE_ENV": "production"
   }
 }
