@@ -18,11 +18,13 @@ const seedUsers = async () => {
 
   await User.insertMany([
     {
+        fullname:"Kaluppa Foundation Admin",
       email: 'kaluppa@test.com',
       password,
       role: 'Kaluppa Foundation'
     },
     {
+        fullname:"DTI Admin",
       email: 'dti@test.com',
       password,
       role: 'DTI'
