@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema({
     enum: ['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer', 'Buyer'],
     required: true
   },
+  tokenVersion: {
+    type: Number,
+    default: 0
+  },
+  passwordChangedAt: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

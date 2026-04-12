@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../css/ManageUsers.css';
 import Sidebar from '../components/Sidebar';
+import { userAPI } from '../js/api';
 
 function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -22,15 +23,8 @@ function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/users', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
+      const data = await userAPI.getAll();
+      setUsers(data);
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
@@ -43,27 +37,12 @@ function ManageUsers() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newUser)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers([...users, data.user]);
-        setNewUser({ fullname: '', email: '', password: '', role: 'Farmer' });
-        setShowCreateForm(false);
-      } else {
-        setError(data.error || 'Error creating user');
-      }
+      const data = await userAPI.create(newUser);
+      setUsers([...users, data.user]);
+      setNewUser({ fullname: '', email: '', password: '', role: 'Farmer' });
+      setShowCreateForm(false);
     } catch (err) {
-      setError('An error occurred');
+      setError(err.message || 'An error occurred');
       console.error('Error:', err);
     }
   };
@@ -72,27 +51,12 @@ function ManageUsers() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editingUser)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers(users.map(u => u._id === userId ? data.user : u));
-        setEditingId(null);
-        setEditingUser({});
-      } else {
-        setError(data.error || 'Error updating user');
-      }
+      const data = await userAPI.update(userId, editingUser);
+      setUsers(users.map(u => u._id === userId ? data.user : u));
+      setEditingId(null);
+      setEditingUser({});
     } catch (err) {
-      setError('An error occurred');
+      setError(err.message || 'An error occurred');
       console.error('Error:', err);
     }
   };
@@ -100,15 +64,8 @@ function ManageUsers() {
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/users/${userId}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
-          setUsers(users.filter(u => u._id !== userId));
-        }
+        await userAPI.delete(userId);
+        setUsers(users.filter(u => u._id !== userId));
       } catch (err) {
         console.error('Error deleting user:', err);
       }

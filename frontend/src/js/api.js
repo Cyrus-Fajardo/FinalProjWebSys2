@@ -2,6 +2,51 @@
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
+const setAuthState = (payload) => {
+  if (payload?.token) {
+    localStorage.setItem('token', payload.token);
+  }
+
+  if (payload?.user) {
+    localStorage.setItem('user', JSON.stringify(payload.user));
+  }
+};
+
+const clearAuthState = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
+
+const shouldAttemptRefresh = (endpoint, options, responseStatus) => {
+  if (responseStatus !== 401) {
+    return false;
+  }
+
+  if (options._retriedAfterRefresh) {
+    return false;
+  }
+
+  const bypassEndpoints = ['/login', '/register', '/refresh'];
+  return !bypassEndpoints.includes(endpoint);
+};
+
+const tryRefreshSession = async () => {
+  const response = await fetch(`${API_BASE_URL}/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
+};
+
 export const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
   const headers = {
@@ -15,10 +60,27 @@ export const apiCall = async (endpoint, options = {}) => {
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers,
   });
 
   const data = await response.json();
+
+  if (shouldAttemptRefresh(endpoint, options, response.status)) {
+    const refreshed = await tryRefreshSession();
+
+    if (refreshed?.token) {
+      setAuthState(refreshed);
+
+      return apiCall(endpoint, {
+        ...options,
+        _retriedAfterRefresh: true,
+      });
+    }
+
+    clearAuthState();
+    throw new Error('Session expired. Please log in again.');
+  }
 
   if (!response.ok) {
     throw new Error(data.error || 'API request failed');
@@ -28,16 +90,40 @@ export const apiCall = async (endpoint, options = {}) => {
 };
 
 export const authAPI = {
-  login: (email, password, role) =>
+  login: (email, password) =>
     apiCall('/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, role }),
+      body: JSON.stringify({ email, password }),
     }),
 
   register: (fullname, email, password, role) =>
     apiCall('/register', {
       method: 'POST',
       body: JSON.stringify({ fullname, email, password, role }),
+    }),
+
+  refresh: () =>
+    apiCall('/refresh', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
+
+  logout: () =>
+    apiCall('/logout', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
+
+  logoutAll: () =>
+    apiCall('/logout-all', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    }),
+
+  changePassword: (currentPassword, newPassword) =>
+    apiCall('/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
     }),
 };
 
@@ -117,8 +203,5 @@ export const authHelpers = {
   clearUser: () => localStorage.removeItem('user'),
 
   isAuthenticated: () => !!localStorage.getItem('token'),
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  },
+  logout: clearAuthState,
 };

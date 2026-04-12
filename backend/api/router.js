@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 const connectToDatabase = require('../config/db');
-const { sendJson, handleOptions } = require('../utils/http');
-const { ApiError, loginUser, registerUser } = require('../controllers/authController');
+const { applyCorsHeaders, sendJson, handleOptions } = require('../utils/http');
+const { ApiError, login, register, refresh, logout, logoutAll, changePassword } = require('../controllers/authController');
+const User = require('../models/User');
 const { getAllUsers, createUser, updateUser, deleteUser } = require('../controllers/userController');
 const { getAllProducts, createProduct, deleteProduct, buyProduct } = require('../controllers/productController');
 const {
@@ -37,15 +38,46 @@ const getBearerToken = (req) => {
   return header.slice(7);
 };
 
-const attachUser = (req) => {
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    throw new ApiError('JWT secret is not configured', 500);
+  }
+
+  return process.env.JWT_SECRET;
+};
+
+const attachUser = async (req) => {
   const token = getBearerToken(req);
 
   if (!token) {
     throw new ApiError('No token provided', 401);
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-  req.user = decoded;
+  try {
+    const decoded = jwt.verify(token, getJwtSecret());
+
+    const user = await User.findById(decoded.userId).select('tokenVersion');
+
+    if (!user) {
+      throw new ApiError('Invalid token', 401);
+    }
+
+    if ((decoded.tokenVersion ?? 0) !== (user.tokenVersion ?? 0)) {
+      throw new ApiError('Token no longer valid', 401);
+    }
+
+    req.user = decoded;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      throw new ApiError('Token expired', 401);
+    }
+
+    throw new ApiError('Invalid token', 401);
+  }
 };
 
 const requireRole = (req, roles) => {
@@ -63,6 +95,8 @@ module.exports = async (req, res) => {
     return handleOptions(res);
   }
 
+  applyCorsHeaders(res);
+
   const segments = getPathSegments(req);
 
   try {
@@ -76,17 +110,38 @@ module.exports = async (req, res) => {
 
     if (resource === 'login') {
       if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
-      const result = await loginUser(req.body || {});
-      return sendJson(res, result.statusCode, result.body);
+      return runController(login, req, res);
     }
 
     if (resource === 'register') {
       if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
-      const result = await registerUser(req.body || {});
-      return sendJson(res, result.statusCode, result.body);
+      return runController(register, req, res);
     }
 
-    attachUser(req);
+    if (resource === 'refresh') {
+      if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      return runController(refresh, req, res);
+    }
+
+    if (resource === 'logout') {
+      if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      await attachUser(req);
+      return runController(logout, req, res);
+    }
+
+    if (resource === 'logout-all') {
+      if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      await attachUser(req);
+      return runController(logoutAll, req, res);
+    }
+
+    if (resource === 'change-password') {
+      if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method Not Allowed' });
+      await attachUser(req);
+      return runController(changePassword, req, res);
+    }
+
+    await attachUser(req);
 
     if (resource === 'users') {
       requireRole(req, allowedRoleMap.users);

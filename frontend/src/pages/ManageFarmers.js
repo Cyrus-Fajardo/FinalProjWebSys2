@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../css/ManageFarmers.css';
 import Sidebar from '../components/Sidebar';
+import { farmerAPI } from '../js/api';
 
 function ManageFarmers() {
   const [farmers, setFarmers] = useState([]);
@@ -16,15 +17,8 @@ function ManageFarmers() {
 
   const fetchFarmers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/farmers', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFarmers(data);
-      }
+      const data = await farmerAPI.getAll();
+      setFarmers(data);
     } catch (err) {
       console.error('Error fetching farmers:', err);
     } finally {
@@ -36,27 +30,12 @@ function ManageFarmers() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/farmers/${farmerId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editingFarmer)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setFarmers(farmers.map(f => f._id === farmerId ? data.farmer : f));
-        setEditingId(null);
-        setEditingFarmer({});
-      } else {
-        setError(data.error || 'Error updating farmer profile');
-      }
+      const data = await farmerAPI.update(farmerId, editingFarmer);
+      setFarmers(farmers.map(f => f._id === farmerId ? data.farmer : f));
+      setEditingId(null);
+      setEditingFarmer({});
     } catch (err) {
-      setError('An error occurred');
+      setError(err.message || 'An error occurred');
       console.error('Error:', err);
     }
   };

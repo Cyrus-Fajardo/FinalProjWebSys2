@@ -6,7 +6,9 @@ const {
   createFarmerProfile,
   batchUpdateFarmers
 } = require('../controllers/farmerController');
-const { authMiddleware, roleMiddleware } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
+const roleMiddleware = require('../middleware/roleMiddleware');
+const { requireMinimumTier } = roleMiddleware;
 
 const router = express.Router();
 
@@ -23,6 +25,6 @@ router.post('/', authMiddleware, roleMiddleware(['Kaluppa Foundation', 'DTI', 'F
 router.patch('/:farmerId', authMiddleware, roleMiddleware(['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer']), updateFarmerProfile);
 
 // Batch update farmers - only for Group Managers
-router.patch('/batch/update', authMiddleware, roleMiddleware(['Kaluppa Foundation', 'DTI', 'Group Manager']), batchUpdateFarmers);
+router.patch('/batch/update', authMiddleware, requireMinimumTier('manager'), batchUpdateFarmers);
 
 module.exports = router;

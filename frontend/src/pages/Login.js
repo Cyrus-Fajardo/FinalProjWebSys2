@@ -6,7 +6,6 @@ import '../css/Login.css';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Farmer');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,13 +16,15 @@ function Login() {
     setLoading(true);
 
     try {
-      const data = await authAPI.login(email, password, role);
+      const data = await authAPI.login(email, password);
 
       authHelpers.setToken(data.token);
       authHelpers.setUser(data.user);
 
+      const userRole = data?.user?.role;
+
       // Route based on role
-      switch (role) {
+      switch (userRole) {
         case 'Farmer':
         case 'Buyer':
         case 'Kaluppa Foundation':
@@ -77,21 +78,6 @@ function Login() {
               placeholder="Enter your password"
               required
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">Account Role</label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="Farmer">Farmer</option>
-              <option value="Buyer">Buyer</option>
-              <option value="Kaluppa Foundation">Kaluppa Foundation</option>
-              <option value="DTI">DTI</option>
-              <option value="Group Manager">Group Manager</option>
-            </select>
           </div>
 
           <button type="submit" disabled={loading} className="login-btn">

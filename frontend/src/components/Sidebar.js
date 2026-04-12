@@ -1,14 +1,20 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authAPI, authHelpers } from '../js/api';
 import '../css/Sidebar.css';
 
 function Sidebar() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      // Local logout still proceeds when token is expired or request fails.
+    }
+
+    authHelpers.logout();
     navigate('/login');
   };
 

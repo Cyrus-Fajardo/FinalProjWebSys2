@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../css/Marketplace.css';
 import Sidebar from '../components/Sidebar';
+import { productAPI } from '../js/api';
 
 function Marketplace() {
   const [products, setProducts] = useState([]);
@@ -23,15 +24,8 @@ function Marketplace() {
 
   const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/products', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data);
-      }
+      const data = await productAPI.getAll();
+      setProducts(data);
     } catch (err) {
       console.error('Error fetching products:', err);
     } finally {
@@ -60,53 +54,27 @@ function Marketplace() {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
+      await productAPI.create(formData);
+      setFormData({
+        productType: 'Coffee Seedlings',
+        variety: '',
+        quantity: '',
+        unit: 'pieces',
+        price: '',
+        description: ''
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setFormData({
-          productType: 'Coffee Seedlings',
-          variety: '',
-          quantity: '',
-          unit: 'pieces',
-          price: '',
-          description: ''
-        });
-        setShowSellForm(false);
-        fetchProducts();
-      } else {
-        setError(data.error || 'Error adding product');
-      }
+      setShowSellForm(false);
+      fetchProducts();
     } catch (err) {
-      setError('An error occurred');
+      setError(err.message || 'An error occurred');
       console.error('Error:', err);
     }
   };
 
   const handleBuyProduct = async (productId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/products/buy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ productId, quantity: 1 })
-      });
-
-      if (response.ok) {
-        fetchProducts();
-      }
+      await productAPI.buy(productId, 1);
+      fetchProducts();
     } catch (err) {
       console.error('Error buying product:', err);
     }
