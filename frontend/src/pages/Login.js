@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authAPI, authHelpers } from '../js/api';
 import '../css/Login.css';
 
 function Login() {
@@ -16,23 +17,10 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role })
-      });
+      const data = await authAPI.login(email, password, role);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Login failed');
-        setLoading(false);
-        return;
-      }
-
-      // Store token and user info
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      authHelpers.setToken(data.token);
+      authHelpers.setUser(data.user);
 
       // Route based on role
       switch (role) {
@@ -51,7 +39,7 @@ function Login() {
           navigate('/marketplace');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(err.message || 'An error occurred. Please try again.');
       console.error('Login error:', err);
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { authAPI, authHelpers } from '../js/api';
 import '../css/Register.css';
 
 function Register() {
@@ -17,28 +18,15 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullname, email, password, role })
-      });
+      const data = await authAPI.register(fullname, email, password, role);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Registration failed');
-        setLoading(false);
-        return;
-      }
-
-      // Store token and user info
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      authHelpers.setToken(data.token);
+      authHelpers.setUser(data.user);
 
       // Navigate to marketplace
       navigate('/marketplace');
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(err.message || 'An error occurred. Please try again.');
       console.error('Registration error:', err);
     } finally {
       setLoading(false);

@@ -208,8 +208,8 @@ KapeKONEK/
 ## 🔌 API Endpoints Summary
 
 ### Authentication (4 endpoints)
-- POST /api/auth/login
-- POST /api/auth/register
+- POST /api/login
+- POST /api/register
 - GET /api/health
 
 ### Users (4 endpoints)

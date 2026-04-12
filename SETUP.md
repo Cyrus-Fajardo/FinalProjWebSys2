@@ -157,7 +157,7 @@ npm run install-all               # Install all dependencies
 
 **Login**
 ```bash
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:5000/api/login \
   -H "Content-Type: application/json" \
   -d '{"email":"farmer@example.com","password":"pass123","role":"Farmer"}'
 ```

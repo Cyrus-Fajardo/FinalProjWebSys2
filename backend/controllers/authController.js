@@ -1,98 +1,128 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const login = async (req, res) => {
-  try {
-    const { email, password, role } = req.body;
+const connectToDatabase = require('../config/db');
+const User = require('../models/User');
 
-    // Check if email exists
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+class ApiError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
 
-    // Check if role matches
-    if (user.role !== role) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
-    // Check if password matches
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Incorrect password' });
-    }
+const createToken = (user) => {
+  return jwt.sign(
+    {
+      userId: user._id,
+      email: user.email,
+      role: user.role,
+      fullname: user.fullname,
+    },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: '24h' }
+  );
+};
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role, fullname: user.fullname },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
-    );
+const buildUserPayload = (user) => ({
+  id: user._id,
+  email: user.email,
+  role: user.role,
+  fullname: user.fullname,
+});
 
-    res.status(200).json({
+const loginUser = async ({ email, password, role }) => {
+  await connectToDatabase();
+
+  if (!email || !password || !role) {
+    throw new ApiError('Email, password, and role are required', 400);
+  }
+
+  const user = await User.findOne({ email: normalizeEmail(email) });
+
+  if (!user || user.role !== role) {
+    throw new ApiError('User not found', 404);
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new ApiError('Incorrect password', 401);
+  }
+
+  const token = createToken(user);
+
+  return {
+    statusCode: 200,
+    body: {
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        fullname: user.fullname
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+      user: buildUserPayload(user),
+    },
+  };
 };
 
-const register = async (req, res) => {
-  try {
-    const { fullname, email, password, role } = req.body;
+const registerUser = async ({ fullname, email, password, role }) => {
+  await connectToDatabase();
 
-    // Only Farmers and Buyers can register
-    if (!['Farmer', 'Buyer'].includes(role)) {
-      return res.status(400).json({ error: 'Invalid role for registration' });
-    }
+  if (!fullname || !email || !password || !role) {
+    throw new ApiError('Full name, email, password, and role are required', 400);
+  }
 
-    // Check if email already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already exists' });
-    }
+  if (!['Farmer', 'Buyer'].includes(role)) {
+    throw new ApiError('Invalid role for registration', 400);
+  }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const normalizedEmail = normalizeEmail(email);
+  const existingUser = await User.findOne({ email: normalizedEmail });
 
-    // Create new user
-    const newUser = new User({
-      fullname,
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      role
-    });
+  if (existingUser) {
+    throw new ApiError('Email already exists', 400);
+  }
 
-    await newUser.save();
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email, role: newUser.role, fullname: newUser.fullname },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
-    );
+  const newUser = new User({
+    fullname,
+    email: normalizedEmail,
+    password: hashedPassword,
+    role,
+  });
 
-    res.status(201).json({
+  await newUser.save();
+
+  const token = createToken(newUser);
+
+  return {
+    statusCode: 201,
+    body: {
       message: 'Registration successful',
       token,
-      user: {
-        id: newUser._id,
-        email: newUser.email,
-        role: newUser.role,
-        fullname: newUser.fullname
-      }
-    });
+      user: buildUserPayload(newUser),
+    },
+  };
+};
+
+const sendControllerResponse = async (handler, req, res) => {
+  try {
+    const result = await handler(req.body);
+    return res.status(result.statusCode).json(result.body);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({ error: error.message });
   }
 };
 
-module.exports = { login, register };
+const login = async (req, res) => sendControllerResponse(loginUser, req, res);
+
+const register = async (req, res) => sendControllerResponse(registerUser, req, res);
+
+module.exports = {
+  login,
+  register,
+  loginUser,
+  registerUser,
+  ApiError,
+};

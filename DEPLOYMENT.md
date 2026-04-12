@@ -64,35 +64,35 @@ mongodb+srv://username:password@cluster0.abc123.mongodb.net/kapekonek?retryWrite
 
 ## Vercel Deployment
 
-### 1. Connect GitHub to Vercel
+This repository is deployed as two separate Vercel projects:
+
+- Frontend project rooted at `frontend`
+- Backend project rooted at `backend`
+
+### 1. Create the Backend Project
 - Go to [Vercel](https://vercel.com)
 - Click "New Project"
-- Import your GitHub repository
-- Select "KapeKONEK" repository
-- Click "Import"
+- Import this repository
+- Set the root directory to `backend`
+- Add environment variables:
+  - `MONGODB_URI`
+  - `JWT_SECRET`
+  - `NODE_ENV=production`
+- Deploy the backend project
 
-### 2. Configure Project Settings
-- **Framework**: Select "Other"
-- **Root Directory**: Leave as `.`
-- **Build Command**: `npm run build --prefix frontend`
-- **Output Directory**: `frontend/build`
-- **Install Command**: `npm run install-all`
+### 2. Create the Frontend Project
+- Create another Vercel project from the same repository
+- Set the root directory to `frontend`
+- Add environment variables:
+  - `REACT_APP_API_URL=https://your-backend-project.vercel.app/api`
+- Deploy the frontend project
 
-### 3. Add Environment Variables
-
-**For Backend Variables:**
-- Add `MONGODB_URI`: Your MongoDB Atlas connection string
-- Add `JWT_SECRET`: A secure random key (generate at https://passwordsgenerator.net/)
-- Add `NODE_ENV`: `production`
-- Add `PORT`: `3001` (Vercel assigns port automatically)
-
-**For Frontend Variables:**
-- Add `REACT_APP_API_URL`: The backend URL from Vercel
-
-### 4. Deploy
-- Click "Deploy"
-- Wait for deployment to complete
-- Your app will be live at the provided URL
+### 3. Verify the Routes
+- `https://your-backend-project.vercel.app/api/login`
+- `https://your-backend-project.vercel.app/api/register`
+- `https://your-backend-project.vercel.app/api/users`
+- `https://your-backend-project.vercel.app/api/products`
+- `https://your-backend-project.vercel.app/api/farmers`
 
 ## Post-Deployment Steps
 

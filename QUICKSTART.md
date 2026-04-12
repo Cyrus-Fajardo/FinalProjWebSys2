@@ -48,7 +48,7 @@ npm start
 ### Important Configuration Files
 - Backend Config: `backend/.env`
 - Frontend Config: `frontend/package.json` (proxy setting)
-- Deployment: `vercel.json`
+- Deployment: separate Vercel project settings for `frontend` and `backend`
 
 ### Main Application Files
 
@@ -132,7 +132,7 @@ npm run install-all
 
 **Login:**
 ```bash
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:5000/api/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@kaluppa.com","password":"kaluppapass123","role":"Kaluppa Foundation"}'
 ```

@@ -44,7 +44,7 @@ User Input (Email/Password/Role)
           ↓
 Frontend: Login Page Component
           ↓
-POST /api/auth/login
+POST /api/login
           ↓
 Backend: authController.login()
           ↓
@@ -231,8 +231,8 @@ frontend/
 ## API Endpoint Categories
 
 ### Authentication (Public)
-- `POST /api/auth/login` - Login endpoint
-- `POST /api/auth/register` - Register endpoint
+- `POST /api/login` - Login endpoint
+- `POST /api/register` - Register endpoint
 
 ### Products (Protected)
 - `GET /api/products` - List products

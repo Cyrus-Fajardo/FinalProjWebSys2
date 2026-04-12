@@ -226,8 +226,8 @@ The application will be available at:
 ## 📚 API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration (Farmers & Buyers only)
+- `POST /api/login` - User login
+- `POST /api/register` - User registration (Farmers & Buyers only)
 
 ### Users
 - `GET /api/users` - Get all users (DTI, Kaluppa Foundation)
@@ -305,19 +305,11 @@ The application features an earthy color palette representative of coffee:
 
 ### Deploy to Vercel
 
-1. **Push code to GitHub**
-```bash
-git add .
-git commit -m "Initial commit"
-git push origin main
-```
+This repository is deployed as two separate Vercel projects.
 
-2. **Connect to Vercel**
-- Go to [Vercel Dashboard](https://vercel.com)
-- Click "New Project"
-- Import the GitHub repository
-- Configure environment variables (MONGODB_URI, JWT_SECRET)
-- Deploy
+1. Create a backend project with root directory `backend` and set `MONGODB_URI`, `JWT_SECRET`, and `NODE_ENV=production`.
+2. Create a frontend project with root directory `frontend` and set `REACT_APP_API_URL` to the backend project URL ending in `/api`.
+3. Deploy both projects from the same GitHub repository.
 
 3. **Configure MongoDB Atlas**
 - Create a MongoDB Atlas account

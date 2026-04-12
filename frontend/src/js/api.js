@@ -29,13 +29,13 @@ export const apiCall = async (endpoint, options = {}) => {
 
 export const authAPI = {
   login: (email, password, role) =>
-    apiCall('/auth/login', {
+    apiCall('/login', {
       method: 'POST',
       body: JSON.stringify({ email, password, role }),
     }),
 
   register: (fullname, email, password, role) =>
-    apiCall('/auth/register', {
+    apiCall('/register', {
       method: 'POST',
       body: JSON.stringify({ fullname, email, password, role }),
     }),
