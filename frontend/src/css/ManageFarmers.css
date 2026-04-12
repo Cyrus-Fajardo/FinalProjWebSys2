@@ -1,0 +1,155 @@
+.manage-farmers-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f1ed;
+}
+
+.manage-farmers-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.manage-farmers-content h1 {
+  color: #6f4e37;
+  font-size: 28px;
+  margin-bottom: 30px;
+  border-bottom: 3px solid #d4a574;
+  padding-bottom: 20px;
+}
+
+.farmers-table-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.farmers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.farmers-table thead {
+  background-color: #6f4e37;
+  color: white;
+}
+
+.farmers-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.farmers-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.farmers-table tbody tr:hover {
+  background-color: #f9f7f4;
+}
+
+.farmers-table tbody tr.editing {
+  background-color: #fffbf0;
+}
+
+.farmers-table td {
+  padding: 15px;
+  color: #3e2723;
+  font-size: 14px;
+}
+
+.farmers-table td input,
+.farmers-table td select {
+  padding: 8px;
+  border: 1px solid #d4a574;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+}
+
+.farm-size-input {
+  display: flex;
+  gap: 8px;
+}
+
+.farm-size-input input {
+  flex: 1;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 8px 12px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.edit-btn {
+  background-color: #6f4e37;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #5a3f2a;
+}
+
+.save-btn {
+  background-color: #6b8e23;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #556b2f;
+}
+
+.cancel-btn {
+  background-color: #999;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #777;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-left: 4px solid #c62828;
+}
+
+.no-data {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .farmers-table {
+    font-size: 12px;
+  }
+
+  .farmers-table th,
+  .farmers-table td {
+    padding: 10px;
+  }
+
+  .edit-btn,
+  .save-btn,
+  .cancel-btn {
+    padding: 6px 8px;
+    margin-right: 4px;
+    font-size: 12px;
+  }
+}
