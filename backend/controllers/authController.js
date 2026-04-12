@@ -21,7 +21,7 @@ const createToken = (user) => {
       role: user.role,
       fullname: user.fullname,
     },
-    process.env.JWT_SECRET || 'your-secret-key',
+    process.env.JWT_SECRET,
     { expiresIn: '24h' }
   );
 };
