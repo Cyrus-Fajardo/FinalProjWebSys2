@@ -1,6 +1,11 @@
 // API configuration and utility functions
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const API_BASE_URL = (process.env.REACT_APP_API_URL || '/api').replace(/\/$/, '');
+
+const buildApiUrl = (endpoint) => {
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE_URL}${normalizedEndpoint}`;
+};
 
 const setAuthState = (payload) => {
   if (payload?.token) {
@@ -31,7 +36,7 @@ const shouldAttemptRefresh = (endpoint, options, responseStatus) => {
 };
 
 const tryRefreshSession = async () => {
-  const response = await fetch(${API_BASE_URL}/refresh, {
+  const response = await fetch(buildApiUrl('/refresh'), {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -55,10 +60,10 @@ export const apiCall = async (endpoint, options = {}) => {
   };
 
   if (token) {
-    headers.Authorization = Bearer ${token};
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(${API_BASE_URL}${endpoint}, {
+  const response = await fetch(buildApiUrl(endpoint), {
     ...options,
     credentials: 'include',
     headers,
@@ -156,7 +161,7 @@ export const productAPI = {
     }),
 
   delete: (productId) =>
-    apiCall(/products/${productId}, {
+    apiCall(`/products/${productId}`, {
       method: 'DELETE',
     }),
 };
@@ -171,13 +176,13 @@ export const userAPI = {
     }),
 
   update: (userId, userData) =>
-    apiCall(/users/${userId}, {
+    apiCall(`/users/${userId}`, {
       method: 'PATCH',
       body: JSON.stringify(userData),
     }),
 
   delete: (userId) =>
-    apiCall(/users/${userId}, {
+    apiCall(`/users/${userId}`, {
       method: 'DELETE',
     }),
 };
@@ -185,7 +190,7 @@ export const userAPI = {
 export const farmerAPI = {
   getAll: () => apiCall('/farmers'),
 
-  getOne: (farmerId) => apiCall(/farmers/${farmerId}),
+  getOne: (farmerId) => apiCall(`/farmers/${farmerId}`),
 
   create: (farmerData) =>
     apiCall('/farmers', {
@@ -194,7 +199,7 @@ export const farmerAPI = {
     }),
 
   update: (farmerId, farmerData) =>
-    apiCall(/farmers/${farmerId}, {
+    apiCall(`/farmers/${farmerId}`, {
       method: 'PATCH',
       body: JSON.stringify(farmerData),
     }),
