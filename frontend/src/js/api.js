@@ -47,7 +47,11 @@ const parseResponseBody = async (response) => {
   }
 };
 
-const buildErrorMessage = (response, data, endpoint) => {
+const buildErrorMessage = (response, data, endpoint, requestUrl) => {
+  if (response.status === 405 && (endpoint === '/register' || endpoint === '/login')) {
+    return `Request failed with status 405 for ${requestUrl}. Check that REACT_APP_API_URL points to your backend API base (for example: https://your-backend-domain/api).`;
+  }
+
   if (data?.error) {
     return data.error;
   }
@@ -69,7 +73,7 @@ const buildErrorMessage = (response, data, endpoint) => {
   return `Request failed with status ${response.status}`;
 };
 
-const debugApiFailure = (endpoint, options, response, data) => {
+const debugApiFailure = (endpoint, options, response, data, requestUrl) => {
   if (process.env.NODE_ENV === 'production') {
     return;
   }
@@ -79,9 +83,12 @@ const debugApiFailure = (endpoint, options, response, data) => {
   // Development-only diagnostics to speed up API failure triage.
   console.error('API request failed', {
     endpoint,
+    requestUrl,
+    apiBaseUrl: API_BASE_URL,
     method,
     status: response.status,
     statusText: response.statusText,
+    allowHeader: response.headers.get('allow'),
     responseData: data,
   });
 };
@@ -132,6 +139,7 @@ const tryRefreshSession = async () => {
 };
 
 export const apiCall = async (endpoint, options = {}) => {
+  const requestUrl = buildApiUrl(endpoint);
   const token = localStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
@@ -144,7 +152,7 @@ export const apiCall = async (endpoint, options = {}) => {
 
   let response;
   try {
-    response = await fetch(buildApiUrl(endpoint), {
+    response = await fetch(requestUrl, {
       ...options,
       credentials: 'include',
       headers,
@@ -176,8 +184,8 @@ export const apiCall = async (endpoint, options = {}) => {
   }
 
   if (!response.ok) {
-    debugApiFailure(endpoint, options, response, data);
-    throw new Error(buildErrorMessage(response, data, endpoint));
+    debugApiFailure(endpoint, options, response, data, requestUrl);
+    throw new Error(buildErrorMessage(response, data, endpoint, requestUrl));
   }
 
   return data;

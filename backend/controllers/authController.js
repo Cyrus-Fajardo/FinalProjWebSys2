@@ -64,8 +64,8 @@ const getRequestMetadata = (req) => {
 
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: true,
+  sameSite: 'none',
   path: '/api',
   maxAge: REFRESH_TOKEN_MAX_AGE_MS,
 });
