@@ -27,7 +27,11 @@ const parseResponseBody = async (response) => {
   const contentType = response.headers.get('content-type') || '';
 
   if (contentType.includes('application/json')) {
-    return response.json();
+    try {
+      return await response.json();
+    } catch (_error) {
+      return null;
+    }
   }
 
   const text = await response.text();
@@ -63,6 +67,23 @@ const buildErrorMessage = (response, data, endpoint) => {
   }
 
   return `Request failed with status ${response.status}`;
+};
+
+const debugApiFailure = (endpoint, options, response, data) => {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
+
+  const method = (options.method || 'GET').toUpperCase();
+
+  // Development-only diagnostics to speed up API failure triage.
+  console.error('API request failed', {
+    endpoint,
+    method,
+    status: response.status,
+    statusText: response.statusText,
+    responseData: data,
+  });
 };
 
 const setAuthState = (payload) => {
@@ -132,7 +153,7 @@ export const apiCall = async (endpoint, options = {}) => {
     throw new Error(`Network error while calling ${endpoint}. Check REACT_APP_API_URL and CORS settings.`);
   }
 
-  if (response.status === 204) {
+  if (response.status === 204 || response.status === 205) {
     return null;
   }
 
@@ -155,6 +176,7 @@ export const apiCall = async (endpoint, options = {}) => {
   }
 
   if (!response.ok) {
+    debugApiFailure(endpoint, options, response, data);
     throw new Error(buildErrorMessage(response, data, endpoint));
   }
 
