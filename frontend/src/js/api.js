@@ -31,7 +31,7 @@ const shouldAttemptRefresh = (endpoint, options, responseStatus) => {
 };
 
 const tryRefreshSession = async () => {
-  const response = await fetch(`${API_BASE_URL}/refresh`, {
+  const response = await fetch(${API_BASE_URL}/refresh, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -55,16 +55,29 @@ export const apiCall = async (endpoint, options = {}) => {
   };
 
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    headers.Authorization = Bearer ${token};
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(${API_BASE_URL}${endpoint}, {
     ...options,
     credentials: 'include',
     headers,
   });
 
-  const data = await response.json();
+  if (response.status === 204) {
+    return null;
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (e) {
+    if (response.ok) {
+      throw new Error('Unexpected response format');
+    } else {
+      throw new Error('API request failed');
+    }
+  }
 
   if (shouldAttemptRefresh(endpoint, options, response.status)) {
     const refreshed = await tryRefreshSession();
@@ -143,7 +156,7 @@ export const productAPI = {
     }),
 
   delete: (productId) =>
-    apiCall(`/products/${productId}`, {
+    apiCall(/products/${productId}, {
       method: 'DELETE',
     }),
 };
@@ -158,13 +171,13 @@ export const userAPI = {
     }),
 
   update: (userId, userData) =>
-    apiCall(`/users/${userId}`, {
+    apiCall(/users/${userId}, {
       method: 'PATCH',
       body: JSON.stringify(userData),
     }),
 
   delete: (userId) =>
-    apiCall(`/users/${userId}`, {
+    apiCall(/users/${userId}, {
       method: 'DELETE',
     }),
 };
@@ -172,7 +185,7 @@ export const userAPI = {
 export const farmerAPI = {
   getAll: () => apiCall('/farmers'),
 
-  getOne: (farmerId) => apiCall(`/farmers/${farmerId}`),
+  getOne: (farmerId) => apiCall(/farmers/${farmerId}),
 
   create: (farmerData) =>
     apiCall('/farmers', {
@@ -181,7 +194,7 @@ export const farmerAPI = {
     }),
 
   update: (farmerId, farmerData) =>
-    apiCall(`/farmers/${farmerId}`, {
+    apiCall(/farmers/${farmerId}, {
       method: 'PATCH',
       body: JSON.stringify(farmerData),
     }),
