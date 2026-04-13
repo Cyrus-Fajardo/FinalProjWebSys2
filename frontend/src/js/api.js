@@ -1,10 +1,68 @@
 // API configuration and utility functions
 
-const API_BASE_URL = (process.env.REACT_APP_API_URL || '/api').replace(/\/$/, '');
+const normalizeApiBaseUrl = (rawUrl) => {
+  const trimmed = String(rawUrl || '/api').trim();
+
+  if (trimmed === '/api' || trimmed === '') {
+    return '/api';
+  }
+
+  const withoutTrailingSlash = trimmed.replace(/\/$/, '');
+
+  if (withoutTrailingSlash === '/api' || withoutTrailingSlash.endsWith('/api')) {
+    return withoutTrailingSlash;
+  }
+
+  return `${withoutTrailingSlash}/api`;
+};
+
+const API_BASE_URL = normalizeApiBaseUrl(process.env.REACT_APP_API_URL);
 
 const buildApiUrl = (endpoint) => {
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   return `${API_BASE_URL}${normalizedEndpoint}`;
+};
+
+const parseResponseBody = async (response) => {
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (_error) {
+    return { rawText: text };
+  }
+};
+
+const buildErrorMessage = (response, data, endpoint) => {
+  if (data?.error) {
+    return data.error;
+  }
+
+  if (data?.message) {
+    return data.message;
+  }
+
+  if (data?.rawText) {
+    const trimmed = data.rawText.replace(/\s+/g, ' ').trim();
+
+    if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html')) {
+      return `Request failed (${response.status}). The API URL may be misconfigured for ${endpoint}.`;
+    }
+
+    return `Request failed (${response.status}): ${trimmed.slice(0, 140)}`;
+  }
+
+  return `Request failed with status ${response.status}`;
 };
 
 const setAuthState = (payload) => {
@@ -63,26 +121,22 @@ export const apiCall = async (endpoint, options = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(buildApiUrl(endpoint), {
-    ...options,
-    credentials: 'include',
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(buildApiUrl(endpoint), {
+      ...options,
+      credentials: 'include',
+      headers,
+    });
+  } catch (error) {
+    throw new Error(`Network error while calling ${endpoint}. Check REACT_APP_API_URL and CORS settings.`);
+  }
 
   if (response.status === 204) {
     return null;
   }
 
-  let data;
-  try {
-    data = await response.json();
-  } catch (e) {
-    if (response.ok) {
-      throw new Error('Unexpected response format');
-    } else {
-      throw new Error('API request failed');
-    }
-  }
+  const data = await parseResponseBody(response);
 
   if (shouldAttemptRefresh(endpoint, options, response.status)) {
     const refreshed = await tryRefreshSession();
@@ -101,7 +155,7 @@ export const apiCall = async (endpoint, options = {}) => {
   }
 
   if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
+    throw new Error(buildErrorMessage(response, data, endpoint));
   }
 
   return data;
