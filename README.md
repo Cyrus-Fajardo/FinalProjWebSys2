@@ -7,8 +7,8 @@
 ---
 [Frontend](https://kapekonek-eight.vercel.app/)
 ---
-[Backend](https://kapekonek-api.vercel.app/api)
+[Backend](https://kapekonek-api.vercel.app/api/users)
 ---
 [API Documentation]()
 ---
-[Link to the PDF]()
+[Link to the PDF](https://drive.google.com/file/d/1b4WssUDP1V9RWd8--Vo_joGWho6qBbRA/view?usp=sharing)
