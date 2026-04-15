@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { farmerAPI, userAPI } from '../js/api';
 import '../css/ManageFarmerDetails.css';
@@ -15,7 +15,7 @@ function ManageFarmerDetails() {
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const data = await farmerAPI.getAll();
       setFarmers(data);
@@ -29,11 +29,11 @@ function ManageFarmerDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { orderAPI, productAPI } from '../js/api';
@@ -40,7 +40,7 @@ function Marketplace() {
     description: '',
   });
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const data = await productAPI.getAll();
       setProducts(data);
@@ -49,9 +49,9 @@ function Marketplace() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!isAuthenticated) {
       return;
     }
@@ -62,11 +62,11 @@ function Marketplace() {
     } catch (_err) {
       // Orders are supplemental UI information.
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -84,7 +84,7 @@ function Marketplace() {
     }
 
     fetchOrders();
-  }, [isAuthenticated, user?.role, navigate]);
+  }, [fetchOrders, isAuthenticated, navigate, user?.role]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
