@@ -438,13 +438,15 @@ function Marketplace() {
           <h2>Available Products</h2>
 
           <div className="market-filters">
-            <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
-              <option value="">All Product Types</option>
-              <option value="Coffee Seedlings">Coffee Seedlings</option>
-              <option value="Coffee Cherries">Coffee Cherries</option>
-              <option value="Processed Coffee">Processed Coffee</option>
-              <option value="Fertilizers">Fertilizers</option>
-            </select>
+            <div>
+                <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+                  <option value="">All Product Types</option>
+                  <option value="Coffee Seedlings">Coffee Seedlings</option>
+                  <option value="Coffee Cherries">Coffee Cherries</option>
+                  <option value="Processed Coffee">Processed Coffee</option>
+                  <option value="Fertilizers">Fertilizers</option>
+                </select>
+            </div>
 
             <div className="filter-group">
               <span className="filter-label">Date Range</span>
