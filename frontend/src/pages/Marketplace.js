@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { orderAPI, productAPI } from '../js/api';
@@ -53,6 +53,14 @@ function Marketplace() {
     description: '',
   });
 
+  const cartPanelRef = useRef(null);
+  const ordersPanelRef = useRef(null);
+
+  const closeFloatingPanels = () => {
+    setShowCartPanel(false);
+    setShowOrdersPanel(false);
+  };
+
   const fetchProducts = useCallback(async () => {
     try {
       const data = await productAPI.getAll();
@@ -98,6 +106,39 @@ function Marketplace() {
 
     fetchOrders();
   }, [fetchOrders, isAuthenticated, navigate, user?.role]);
+
+  useEffect(() => {
+    const onPointerDown = (event) => {
+      if (!showCartPanel && !showOrdersPanel) {
+        return;
+      }
+
+      const target = event.target;
+      const insideCart = cartPanelRef.current && cartPanelRef.current.contains(target);
+      const insideOrders = ordersPanelRef.current && ordersPanelRef.current.contains(target);
+      const insideButton = target.closest && target.closest('.floating-btn');
+
+      if (insideCart || insideOrders || insideButton) {
+        return;
+      }
+
+      closeFloatingPanels();
+    };
+
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [showCartPanel, showOrdersPanel]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape' && (showCartPanel || showOrdersPanel)) {
+        closeFloatingPanels();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showCartPanel, showOrdersPanel]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -423,7 +464,7 @@ function Marketplace() {
                   {product.variety && <p><strong>Variety:</strong> {product.variety}</p>}
                   <p><strong>Quantity:</strong> {product.quantity} {product.unit}</p>
                   <p><strong>Sale Type:</strong> {product.saleType || 'Retail'}</p>
-                  <p><strong>Price:</strong> P{product.price}</p>
+                  <p><strong>Price:</strong> ₱{product.price}</p>
                   <p><strong>Sold by:</strong> {product.sellerId?.fullname || 'Unknown'}</p>
                   {product.processingBadge === 'self-processed' && <p className="processing-badge self">[Self-Processed]</p>}
                   {product.processingBadge === 'foundation-verified' && <p className="processing-badge verified">[Verified Process]</p>}
@@ -443,6 +484,8 @@ function Marketplace() {
           )}
         </div>
 
+        {(showCartPanel || showOrdersPanel) && <div className="floating-overlay" onClick={closeFloatingPanels} />}
+
         <div className="floating-actions">
           <button className="floating-btn" onClick={() => setShowCartPanel((prev) => !prev)}>
             <span className="icon" aria-hidden="true">🛒</span>
@@ -458,7 +501,7 @@ function Marketplace() {
         </div>
 
         {showCartPanel && (
-          <div className="floating-panel cart-panel">
+          <div className="floating-panel cart-panel" ref={cartPanelRef}>
             <h2>Cart</h2>
             {cartWarning && <div className="error-message">{cartWarning}</div>}
             {checkoutMessage && <div className="success-message">{checkoutMessage}</div>}
@@ -492,7 +535,7 @@ function Marketplace() {
                             onChange={(e) => handleCartQuantity(item.productId, e.target.value)}
                           />
                         </td>
-                        <td>P{item.price}</td>
+                        <td>₱{item.price}</td>
                         <td>
                           <button className="remove-btn" onClick={() => removeFromCart(item.productId)}>Remove</button>
                         </td>
@@ -508,7 +551,7 @@ function Marketplace() {
         )}
 
         {isAuthenticated && showOrdersPanel && (
-          <div className="floating-panel orders-panel">
+          <div className="floating-panel orders-panel" ref={ordersPanelRef}>
             <h2>Orders</h2>
             {orders.length === 0 ? (
               <p className="no-products">No orders yet.</p>
@@ -530,8 +573,8 @@ function Marketplace() {
                       <td>{order.orderId}</td>
                       <td>{order.items?.length || 0}</td>
                       <td>{order.status}</td>
-                      <td>P{order.subtotal}</td>
-                      <td>P{order.cancellationFee || 0}</td>
+                      <td>₱{order.subtotal}</td>
+                      <td>₱{order.cancellationFee || 0}</td>
                       <td>
                         {order.status === 'Pending' ? (
                           <button className="remove-btn" onClick={() => handleCancelOrder(order._id)}>Cancel</button>

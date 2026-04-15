@@ -2,10 +2,12 @@
   display: flex;
   min-height: 100vh;
   background-color: #f5f1ed;
+  overflow-x: hidden;
 }
 
 .manage-users-content {
   flex: 1;
+  min-width: 0;
   padding: 30px;
 }
 
@@ -158,12 +160,14 @@
 .users-table-container {
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .users-table {
   width: 100%;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
