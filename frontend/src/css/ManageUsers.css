@@ -13,9 +13,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
   margin-bottom: 30px;
   border-bottom: 3px solid #d4a574;
   padding-bottom: 20px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .manage-users-header h1 {
@@ -28,6 +35,44 @@
   padding: 10px;
   border: 1px solid #d4a574;
   border-radius: 5px;
+}
+
+.immutable-role {
+  font-weight: 600;
+  color: #6f4e37;
+}
+
+.password-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.password-toggle {
+  border: none;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  background: #6f4e37;
+  color: #fff;
+  font-size: 12px;
+}
+
+.password-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inline-note {
+  font-size: 12px;
+  color: #8d6e63;
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .create-btn {
@@ -165,7 +210,6 @@
 .save-btn,
 .cancel-btn {
   padding: 8px 12px;
-  margin-right: 8px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -190,6 +234,11 @@
 
 .delete-btn:hover {
   background-color: #ad1457;
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .save-btn {

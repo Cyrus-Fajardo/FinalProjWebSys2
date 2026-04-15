@@ -11,11 +11,12 @@ const productSchema = new mongoose.Schema({
   },
   quantity: {
     type: Number,
-    required: true
+    required: true,
+    min: 1
   },
   unit: {
     type: String,
-    enum: ['pieces', 'kg', 'bags']
+    enum: ['pieces', 'kg', 'bags', 'packs']
   },
   saleType: {
     type: String,
@@ -39,7 +40,8 @@ const productSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: true
+    required: true,
+    min: 1
   },
   description: {
     type: String

@@ -5,6 +5,7 @@ const Order = require('../models/Order');
 const SELLABLE_TYPES_BY_ROLE = {
   Farmer: ['Coffee Cherries', 'Processed Coffee', 'Coffee Seedlings'],
   'Kaluppa Foundation': ['Coffee Seedlings', 'Processed Coffee', 'Fertilizers'],
+  'Kaluppâ Foundation': ['Coffee Seedlings', 'Processed Coffee', 'Fertilizers'],
 };
 
 const inventoryFieldByProductType = {
@@ -56,6 +57,16 @@ const createProduct = async (req, res) => {
     const sellerId = req.user.userId;
     const sellerRole = req.user.role;
     const numericQuantity = Number(quantity);
+    const numericPrice = Number(price);
+    const normalizedSaleType = saleType === 'Wholesale' ? 'Wholesale' : 'Retail';
+
+    const expectedUnit = (() => {
+      if (productType === 'Coffee Cherries') return 'kg';
+      if (productType === 'Coffee Seedlings') return 'pieces';
+      if (productType === 'Fertilizers') return 'bags';
+      if (productType === 'Processed Coffee') return normalizedSaleType === 'Wholesale' ? 'kg' : 'packs';
+      return unit;
+    })();
 
     if (!SELLABLE_TYPES_BY_ROLE[sellerRole]) {
       return res.status(400).json({ error: 'Only Farmers and Kaluppa Foundation can sell' });
@@ -67,6 +78,14 @@ const createProduct = async (req, res) => {
 
     if (!numericQuantity || numericQuantity <= 0) {
       return res.status(400).json({ error: 'Quantity must be greater than zero' });
+    }
+
+    if (!numericPrice || numericPrice <= 0) {
+      return res.status(400).json({ error: 'Price must be greater than zero' });
+    }
+
+    if (unit && unit !== expectedUnit) {
+      return res.status(400).json({ error: `Invalid unit for selected product and sale type. Expected unit: ${expectedUnit}` });
     }
 
     const sellerProfile = await Seller.findOne({ userId: sellerId });
@@ -93,12 +112,12 @@ const createProduct = async (req, res) => {
       productType,
       variety,
       quantity: numericQuantity,
-      unit,
+      unit: expectedUnit,
       sellerId,
       sellerRole,
-      price,
+      price: numericPrice,
       description,
-      saleType: saleType === 'Wholesale' ? 'Wholesale' : 'Retail',
+      saleType: normalizedSaleType,
       processingBadge: resolveProcessingBadge(productType, sellerRole),
     });
 

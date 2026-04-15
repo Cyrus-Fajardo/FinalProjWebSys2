@@ -8,6 +8,14 @@ function Sidebar() {
   const isAuthenticated = !!(localStorage.getItem('token') && user);
   const navigate = useNavigate();
 
+  const getRoleLabel = (role) => {
+    if (role === 'Kaluppa Foundation') {
+      return 'Kaluppâ Foundation';
+    }
+
+    return role;
+  };
+
   const handleLogout = async () => {
     try {
       await authAPI.logout();
@@ -73,7 +81,7 @@ function Sidebar() {
           <>
             <h2>KapeKONEK</h2>
             <p className="user-info">{user.fullname}</p>
-            <p className="user-role">{user.role}</p>
+            <p className="user-role">{getRoleLabel(user.role)}</p>
             {user.isVerified && <p className="verified-badge">Verified</p>}
           </>
         )}

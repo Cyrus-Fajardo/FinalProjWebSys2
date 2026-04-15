@@ -8,6 +8,7 @@
   flex: 1;
   padding: 30px;
   background-color: #f5f1ed;
+  position: relative;
 }
 
 .marketplace-header {
@@ -229,6 +230,73 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.floating-actions {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 130;
+}
+
+.floating-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #6f4e37;
+  color: #fff;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.floating-btn.orders {
+  background: #4b6d29;
+}
+
+.floating-btn .icon {
+  font-size: 22px;
+}
+
+.floating-btn .badge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #c62828;
+  color: #fff;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.floating-panel {
+  position: fixed;
+  right: 24px;
+  width: min(92vw, 760px);
+  max-height: min(72vh, 640px);
+  overflow: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+  padding: 16px;
+  z-index: 125;
+}
+
+.floating-panel.cart-panel {
+  bottom: 92px;
+}
+
+.floating-panel.orders-panel {
+  bottom: 160px;
+}
+
 .cart-table {
   width: 100%;
   border-collapse: collapse;
@@ -306,5 +374,15 @@
 
   .products-grid {
     grid-template-columns: 1fr;
+  }
+
+  .floating-actions {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .floating-panel {
+    right: 10px;
+    width: calc(100vw - 20px);
   }
 }

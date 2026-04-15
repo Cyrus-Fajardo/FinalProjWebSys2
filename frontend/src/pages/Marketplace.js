@@ -9,7 +9,17 @@ const SELLABLE_TYPES_BY_ROLE = {
   'Kaluppa Foundation': ['Coffee Seedlings', 'Processed Coffee', 'Fertilizers'],
 };
 
-const UNVERIFIED_BUYER_MAX_UNITS = 20;
+const UNVERIFIED_BUYER_MAX_UNITS = 2;
+
+const getUnitForListing = (productType, saleType) => {
+  if (productType === 'Coffee Cherries') return 'kg';
+  if (productType === 'Coffee Seedlings') return 'pieces';
+  if (productType === 'Fertilizers') return 'bags';
+  if (productType === 'Processed Coffee') {
+    return saleType === 'Wholesale' ? 'kg' : 'packs';
+  }
+  return 'pieces';
+};
 
 function Marketplace() {
   const navigate = useNavigate();
@@ -21,12 +31,15 @@ function Marketplace() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSellForm, setShowSellForm] = useState(false);
+  const [showCartPanel, setShowCartPanel] = useState(false);
+  const [showOrdersPanel, setShowOrdersPanel] = useState(false);
   const [error, setError] = useState('');
   const [cartWarning, setCartWarning] = useState('');
   const [checkoutMessage, setCheckoutMessage] = useState('');
 
   const [searchType, setSearchType] = useState('');
-  const [searchDate, setSearchDate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
@@ -88,25 +101,38 @@ function Marketplace() {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (name === 'productType') {
-      if (value === 'Fertilizers') {
-        setFormData((prev) => ({ ...prev, unit: 'bags' }));
-      } else if (['Coffee Cherries', 'Processed Coffee'].includes(value)) {
-        setFormData((prev) => ({ ...prev, unit: 'kg' }));
-      } else {
-        setFormData((prev) => ({ ...prev, unit: 'pieces' }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'productType' || name === 'saleType') {
+        next.unit = getUnitForListing(
+          name === 'productType' ? value : next.productType,
+          name === 'saleType' ? value : next.saleType
+        );
       }
-    }
+      return next;
+    });
   };
 
   const handleSellProduct = async (event) => {
     event.preventDefault();
     setError('');
 
+    const numericQty = Number(formData.quantity);
+    const numericPrice = Number(formData.price);
+
+    if (numericQty < 1 || numericPrice < 1) {
+      setError('Quantity and price must be at least 1.');
+      return;
+    }
+
     try {
-      await productAPI.create(formData);
+      await productAPI.create({
+        ...formData,
+        quantity: numericQty,
+        price: numericPrice,
+        unit: getUnitForListing(formData.productType, formData.saleType),
+      });
       setFormData({
         productType: 'Coffee Seedlings',
         variety: '',
@@ -139,6 +165,20 @@ function Marketplace() {
       return;
     }
 
+    const existing = cart.find((item) => item.productId === product._id);
+
+    if (product.saleType === 'Wholesale' && existing) {
+      setCartWarning('Wholesale products can only be added once to avoid redundancies.');
+      return;
+    }
+
+    const nextQty = (existing?.quantity || 0) + 1;
+
+    if (product.saleType === 'Retail' && nextQty > Number(product.quantity || 0)) {
+      setCartWarning('Retail quantity in cart cannot exceed available listed quantity.');
+      return;
+    }
+
     if (user.role === 'Buyer' && !user.isVerified) {
       if (getCurrentCartUnits() + 1 > UNVERIFIED_BUYER_MAX_UNITS) {
         setCartWarning(`Unverified buyers can only add up to ${UNVERIFIED_BUYER_MAX_UNITS} total units.`);
@@ -147,11 +187,9 @@ function Marketplace() {
     }
 
     setCart((prev) => {
-      const existing = prev.find((item) => item.productId === product._id);
-
       if (existing) {
         return prev.map((item) => item.productId === product._id
-          ? { ...item, quantity: item.quantity + 1 }
+          ? { ...item, quantity: nextQty }
           : item);
       }
 
@@ -162,6 +200,8 @@ function Marketplace() {
           productType: product.productType,
           unit: product.unit,
           price: product.price,
+          saleType: product.saleType || 'Retail',
+          availableQuantity: Number(product.quantity || 0),
           sellerName: product.sellerId?.fullname || 'Unknown',
           quantity: 1,
         },
@@ -170,10 +210,21 @@ function Marketplace() {
   };
 
   const handleCartQuantity = (productId, quantity) => {
-    const nextQty = Math.max(1, Number(quantity || 1));
-    setCart((prev) => prev.map((item) => (
-      item.productId === productId ? { ...item, quantity: nextQty } : item
-    )));
+    setCartWarning('');
+
+    setCart((prev) => prev.map((item) => {
+      if (item.productId !== productId) {
+        return item;
+      }
+
+      if (item.saleType === 'Wholesale') {
+        return { ...item, quantity: 1 };
+      }
+
+      const normalized = Math.max(1, Number(quantity || 1));
+      const clamped = Math.min(normalized, Number(item.availableQuantity || normalized));
+      return { ...item, quantity: clamped };
+    }));
   };
 
   const removeFromCart = (productId) => {
@@ -226,14 +277,24 @@ function Marketplace() {
   const canSell = isAuthenticated && ['Farmer', 'Kaluppa Foundation'].includes(user.role);
   const allowedSellOptions = canSell ? (SELLABLE_TYPES_BY_ROLE[user.role] || []) : [];
 
+  const cartItemCount = cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+
   const filteredProducts = useMemo(() => products.filter((product) => {
-    const productDate = new Date(product.dateListed);
+    const listedDate = new Date(product.dateListed);
     const typeMatch = searchType ? product.productType === searchType : true;
-    const dateMatch = searchDate ? productDate.toDateString() === new Date(searchDate).toDateString() : true;
+
+    const listedTime = new Date(listedDate.getFullYear(), listedDate.getMonth(), listedDate.getDate()).getTime();
+    const startTime = startDate ? new Date(startDate).getTime() : null;
+    const endTime = endDate ? new Date(endDate).getTime() : null;
+
+    const startMatch = startTime === null ? true : listedTime >= startTime;
+    const endMatch = endTime === null ? true : listedTime <= endTime;
+
     const minMatch = minPrice ? Number(product.price) >= Number(minPrice) : true;
     const maxMatch = maxPrice ? Number(product.price) <= Number(maxPrice) : true;
-    return typeMatch && dateMatch && minMatch && maxMatch;
-  }), [products, searchType, searchDate, minPrice, maxPrice]);
+
+    return typeMatch && startMatch && endMatch && minMatch && maxMatch;
+  }), [products, searchType, startDate, endDate, minPrice, maxPrice]);
 
   return (
     <div className="marketplace-container">
@@ -271,7 +332,7 @@ function Marketplace() {
                     name="variety"
                     value={formData.variety}
                     onChange={handleInputChange}
-                    placeholder="e.g., Typica, Bourbon"
+                    placeholder="Arabica, Liberica, Robusta, or Excelsa"
                     required
                   />
                 </div>
@@ -281,6 +342,7 @@ function Marketplace() {
                 <label htmlFor="quantity">Quantity</label>
                 <input
                   type="number"
+                  min="1"
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleInputChange}
@@ -293,6 +355,7 @@ function Marketplace() {
                 <label htmlFor="price">Price (PHP)</label>
                 <input
                   type="number"
+                  min="1"
                   name="price"
                   value={formData.price}
                   onChange={handleInputChange}
@@ -307,6 +370,11 @@ function Marketplace() {
                   <option value="Retail">Retail</option>
                   <option value="Wholesale">Wholesale</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="unit">Unit</label>
+                <input type="text" name="unit" value={formData.unit} readOnly />
               </div>
 
               <div className="form-group">
@@ -337,9 +405,10 @@ function Marketplace() {
               <option value="Fertilizers">Fertilizers</option>
             </select>
 
-            <input type="date" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
-            <input type="number" placeholder="Min Price" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-            <input type="number" placeholder="Max Price" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input type="number" min="1" placeholder="Min Price" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
+            <input type="number" min="1" placeholder="Max Price" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
           </div>
 
           {loading ? (
@@ -374,8 +443,22 @@ function Marketplace() {
           )}
         </div>
 
-        {isAuthenticated && (
-          <div className="cart-container">
+        <div className="floating-actions">
+          <button className="floating-btn" onClick={() => setShowCartPanel((prev) => !prev)}>
+            <span className="icon" aria-hidden="true">🛒</span>
+            <span className="badge">{cartItemCount}</span>
+          </button>
+
+          {isAuthenticated && (
+            <button className="floating-btn orders" onClick={() => setShowOrdersPanel((prev) => !prev)}>
+              <span className="icon" aria-hidden="true">📦</span>
+              <span className="badge">{orders.length}</span>
+            </button>
+          )}
+        </div>
+
+        {showCartPanel && (
+          <div className="floating-panel cart-panel">
             <h2>Cart</h2>
             {cartWarning && <div className="error-message">{cartWarning}</div>}
             {checkoutMessage && <div className="success-message">{checkoutMessage}</div>}
@@ -389,7 +472,7 @@ function Marketplace() {
                     <tr>
                       <th>Product</th>
                       <th>Sold by</th>
-                      <th>Quantity</th>
+                      <th>Qty</th>
                       <th>Price</th>
                       <th>Action</th>
                     </tr>
@@ -403,7 +486,9 @@ function Marketplace() {
                           <input
                             type="number"
                             min="1"
+                            max={item.availableQuantity}
                             value={item.quantity}
+                            disabled={item.saleType === 'Wholesale'}
                             onChange={(e) => handleCartQuantity(item.productId, e.target.value)}
                           />
                         </td>
@@ -422,10 +507,9 @@ function Marketplace() {
           </div>
         )}
 
-        {isAuthenticated && (
-          <div className="cart-container">
+        {isAuthenticated && showOrdersPanel && (
+          <div className="floating-panel orders-panel">
             <h2>Orders</h2>
-
             {orders.length === 0 ? (
               <p className="no-products">No orders yet.</p>
             ) : (
@@ -436,7 +520,7 @@ function Marketplace() {
                     <th>Items</th>
                     <th>Status</th>
                     <th>Subtotal</th>
-                    <th>Cancellation Fee</th>
+                    <th>Fee</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -450,10 +534,8 @@ function Marketplace() {
                       <td>P{order.cancellationFee || 0}</td>
                       <td>
                         {order.status === 'Pending' ? (
-                          <button className="remove-btn" onClick={() => handleCancelOrder(order._id)}>Cancel Order</button>
-                        ) : (
-                          '-'
-                        )}
+                          <button className="remove-btn" onClick={() => handleCancelOrder(order._id)}>Cancel</button>
+                        ) : '-'}
                       </td>
                     </tr>
                   ))}

@@ -3,6 +3,14 @@ import Sidebar from '../components/Sidebar';
 import { farmerAPI, userAPI } from '../js/api';
 import '../css/ManageFarmerDetails.css';
 
+const getRoleLabel = (role) => {
+  if (role === 'Kaluppa Foundation') {
+    return 'Kaluppâ Foundation';
+  }
+
+  return role;
+};
+
 function ManageFarmerDetails() {
   const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
   const isAdmin = ['Kaluppa Foundation', 'DTI'].includes(currentUser?.role);
@@ -47,6 +55,7 @@ function ManageFarmerDetails() {
       || String(farmer.userId?.fullname || '').toLowerCase().includes(normalized)
       || String(farmer.userId?.email || '').toLowerCase().includes(normalized)
       || String(farmer.location || '').toLowerCase().includes(normalized)
+      || String(farmer.farmName || '').toLowerCase().includes(normalized)
     ));
   }, [farmers, query]);
 
@@ -56,7 +65,20 @@ function ManageFarmerDetails() {
       sellerName: farmer.sellerName || '',
       farmName: farmer.farmName || '',
       location: farmer.location || '',
+      farmSize: farmer.farmSize || 0,
       assignedManager: farmer.assignedManager?._id || '',
+      harvestDetails: {
+        variety: farmer.harvestDetails?.variety || '',
+        coffeeCherriesKg: farmer.harvestDetails?.coffeeCherriesKg || 0,
+        coffeeSeedlingsCount: farmer.harvestDetails?.coffeeSeedlingsCount || 0,
+      },
+      processDetails: {
+        variety: farmer.processDetails?.variety || '',
+        processedCoffeeKg: farmer.processDetails?.processedCoffeeKg || 0,
+      },
+      inventoryDetails: {
+        fertilizerBags: farmer.inventoryDetails?.fertilizerBags || 0,
+      },
     });
   };
 
@@ -68,6 +90,19 @@ function ManageFarmerDetails() {
         sellerName: editingData.sellerName,
         farmName: editingData.farmName,
         location: editingData.location,
+        farmSize: Number(editingData.farmSize || 0),
+        harvestDetails: {
+          ...editingData.harvestDetails,
+          coffeeCherriesKg: Number(editingData.harvestDetails?.coffeeCherriesKg || 0),
+          coffeeSeedlingsCount: Number(editingData.harvestDetails?.coffeeSeedlingsCount || 0),
+        },
+        processDetails: {
+          ...editingData.processDetails,
+          processedCoffeeKg: Number(editingData.processDetails?.processedCoffeeKg || 0),
+        },
+        inventoryDetails: {
+          fertilizerBags: Number(editingData.inventoryDetails?.fertilizerBags || 0),
+        },
       };
 
       if (isAdmin) {
@@ -75,7 +110,7 @@ function ManageFarmerDetails() {
       }
 
       const result = await farmerAPI.update(farmerId, payload);
-      setFarmers((prev) => prev.map((f) => (f._id === farmerId ? result.farmer : f)));
+      setFarmers((prev) => prev.map((farmer) => (farmer._id === farmerId ? result.farmer : farmer)));
       setEditingId(null);
       setEditingData({});
     } catch (err) {
@@ -107,11 +142,18 @@ function ManageFarmerDetails() {
             <table>
               <thead>
                 <tr>
-                  <th>Seller Name</th>
-                  <th>User</th>
+                  <th>Farmer Name</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Farm</th>
+                  <th>Farm Size</th>
                   <th>Location</th>
+                  <th>Harvest Variety</th>
+                  <th>Cherries (kg)</th>
+                  <th>Seedlings</th>
+                  <th>Processed Variety</th>
+                  <th>Processed (kg)</th>
+                  <th>Fertilizer Bags</th>
                   <th>Assigned Manager</th>
                   <th>Actions</th>
                 </tr>
@@ -129,9 +171,30 @@ function ManageFarmerDetails() {
                         farmer.sellerName
                       )}
                     </td>
-                    <td>{farmer.userId?.fullname}</td>
                     <td>{farmer.userId?.email}</td>
-                    <td>{farmer.userId?.role}</td>
+                    <td>{getRoleLabel(farmer.userId?.role)}</td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          value={editingData.farmName || ''}
+                          onChange={(e) => setEditingData((prev) => ({ ...prev, farmName: e.target.value }))}
+                        />
+                      ) : (
+                        farmer.farmName
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingData.farmSize || 0}
+                          onChange={(e) => setEditingData((prev) => ({ ...prev, farmSize: e.target.value }))}
+                        />
+                      ) : (
+                        farmer.farmSize
+                      )}
+                    </td>
                     <td>
                       {editingId === farmer._id ? (
                         <input
@@ -140,6 +203,92 @@ function ManageFarmerDetails() {
                         />
                       ) : (
                         farmer.location
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          value={editingData.harvestDetails?.variety || ''}
+                          onChange={(e) => setEditingData((prev) => ({
+                            ...prev,
+                            harvestDetails: { ...prev.harvestDetails, variety: e.target.value },
+                          }))}
+                        />
+                      ) : (
+                        farmer.harvestDetails?.variety || '-'
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingData.harvestDetails?.coffeeCherriesKg || 0}
+                          onChange={(e) => setEditingData((prev) => ({
+                            ...prev,
+                            harvestDetails: { ...prev.harvestDetails, coffeeCherriesKg: e.target.value },
+                          }))}
+                        />
+                      ) : (
+                        farmer.harvestDetails?.coffeeCherriesKg || 0
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingData.harvestDetails?.coffeeSeedlingsCount || 0}
+                          onChange={(e) => setEditingData((prev) => ({
+                            ...prev,
+                            harvestDetails: { ...prev.harvestDetails, coffeeSeedlingsCount: e.target.value },
+                          }))}
+                        />
+                      ) : (
+                        farmer.harvestDetails?.coffeeSeedlingsCount || 0
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          value={editingData.processDetails?.variety || ''}
+                          onChange={(e) => setEditingData((prev) => ({
+                            ...prev,
+                            processDetails: { ...prev.processDetails, variety: e.target.value },
+                          }))}
+                        />
+                      ) : (
+                        farmer.processDetails?.variety || '-'
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingData.processDetails?.processedCoffeeKg || 0}
+                          onChange={(e) => setEditingData((prev) => ({
+                            ...prev,
+                            processDetails: { ...prev.processDetails, processedCoffeeKg: e.target.value },
+                          }))}
+                        />
+                      ) : (
+                        farmer.processDetails?.processedCoffeeKg || 0
+                      )}
+                    </td>
+                    <td>
+                      {editingId === farmer._id ? (
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingData.inventoryDetails?.fertilizerBags || 0}
+                          onChange={(e) => setEditingData((prev) => ({
+                            ...prev,
+                            inventoryDetails: { ...prev.inventoryDetails, fertilizerBags: e.target.value },
+                          }))}
+                        />
+                      ) : (
+                        farmer.inventoryDetails?.fertilizerBags || 0
                       )}
                     </td>
                     <td>
