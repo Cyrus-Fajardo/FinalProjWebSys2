@@ -446,10 +446,23 @@ function Marketplace() {
               <option value="Fertilizers">Fertilizers</option>
             </select>
 
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-            <input type="number" min="1" placeholder="Min Price" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-            <input type="number" min="1" placeholder="Max Price" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
+            <div className="filter-group">
+              <span className="filter-label">Date Range</span>
+              <div className="range-row">
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} aria-label="Start date" />
+                <span className="range-separator">–</span>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} aria-label="End date" />
+              </div>
+            </div>
+
+            <div className="filter-group">
+              <span className="filter-label">Price Range</span>
+              <div className="range-row">
+                <input type="number" min="1" placeholder="Min" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} aria-label="Minimum price" />
+                <span className="range-separator">–</span>
+                <input type="number" min="1" placeholder="Max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} aria-label="Maximum price" />
+              </div>
+            </div>
           </div>
 
           {loading ? (
