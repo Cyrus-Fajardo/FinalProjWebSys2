@@ -47,11 +47,13 @@ const checkoutOrder = async (req, res) => {
         return res.status(400).json({ error: `Insufficient stock for ${product.productType}` });
       }
 
-      product.quantity -= item.quantity;
-      await product.save();
+      const remainingQuantity = product.quantity - item.quantity;
 
-      if (product.quantity === 0) {
+      if (remainingQuantity === 0) {
         await Product.findByIdAndDelete(product._id);
+      } else {
+        product.quantity = remainingQuantity;
+        await product.save();
       }
 
       const lineTotal = product.price * item.quantity;
