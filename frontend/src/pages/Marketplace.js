@@ -438,14 +438,13 @@ function Marketplace() {
           <h2>Available Products</h2>
 
           <div className="market-filters">
-            <div>
-                <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
-                  <option value="">All Product Types</option>
-                  <option value="Coffee Seedlings">Coffee Seedlings</option>
-                  <option value="Coffee Cherries">Coffee Cherries</option>
-                  <option value="Processed Coffee">Processed Coffee</option>
-                  <option value="Fertilizers">Fertilizers</option>
-                </select>
+            <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+                <option value="">All Product Types</option>
+                <option value="Coffee Seedlings">Coffee Seedlings</option>
+                <option value="Coffee Cherries">Coffee Cherries</option>
+                <option value="Processed Coffee">Processed Coffee</option>
+                <option value="Fertilizers">Fertilizers</option>
+            </select>
             </div>
 
             <div className="filter-group">
@@ -465,7 +464,6 @@ function Marketplace() {
                 <input type="number" min="1" placeholder="Max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} aria-label="Maximum price" />
               </div>
             </div>
-          </div>
 
           {loading ? (
             <p>Loading products...</p>
