@@ -124,11 +124,11 @@
 }
 
 .market-filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
   margin-bottom: 20px;
-  align-items: end;
 }
 
 .market-filters input,
@@ -142,7 +142,27 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-bottom: 10px;
+  padding-bottom: 6px;
+  max-width: 560px;
+}
+
+.product-type-filter {
+  display: flex;
+  justify-content: center;
+}
+
+.product-type-filter select {
+  width: 100%;
+  max-width: 360px;
+}
+
+.date-filter-group {
+  margin: 0 auto;
+}
+
+.market-filters .filter-group {
+  margin: 0 auto;
+  width: 100%;
 }
 
 .filter-label {
