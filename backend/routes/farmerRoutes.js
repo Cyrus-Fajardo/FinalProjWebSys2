@@ -12,7 +12,7 @@ const { requireMinimumTier } = roleMiddleware;
 
 const router = express.Router();
 
-// Get all farmers - accessible to Kaluppa Foundation, DTI, Group Managers, and Farmers
+// Get all farmers - role-scoped inside controller
 router.get('/', authMiddleware, roleMiddleware(['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer']), getAllFarmers);
 
 // Get single farmer profile

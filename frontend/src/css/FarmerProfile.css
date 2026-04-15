@@ -1,0 +1,72 @@
+.farmer-profile-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f1ed;
+}
+
+.farmer-profile-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.farmer-profile-content h1 {
+  color: #6f4e37;
+  margin-bottom: 20px;
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card h2 {
+  margin-top: 18px;
+  color: #3e2723;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.form-grid input {
+  padding: 10px;
+  border: 1px solid #d4a574;
+  border-radius: 5px;
+}
+
+.save-profile-btn {
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 5px;
+  background: #6b8e23;
+  color: #fff;
+  cursor: pointer;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  background-color: #edf7ed;
+  color: #1b5e20;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}

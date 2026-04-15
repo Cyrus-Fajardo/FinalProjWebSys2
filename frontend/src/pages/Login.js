@@ -26,6 +26,8 @@ function Login() {
       // Route based on role
       switch (userRole) {
         case 'Farmer':
+          navigate('/farmer-profile');
+          break;
         case 'Buyer':
         case 'Kaluppa Foundation':
           navigate('/marketplace');
@@ -34,7 +36,7 @@ function Login() {
           navigate('/manage-users');
           break;
         case 'Group Manager':
-          navigate('/manage-farmers');
+          navigate('/manage-farmer-details');
           break;
         default:
           navigate('/marketplace');

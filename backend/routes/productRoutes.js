@@ -5,8 +5,8 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 
 const router = express.Router();
 
-// Get all products - accessible to Kaluppa Foundation, Farmers, and Buyers
-router.get('/', authMiddleware, roleMiddleware(['Kaluppa Foundation', 'Farmer', 'Buyer']), getAllProducts);
+// Get all products - public for window-shopping
+router.get('/', getAllProducts);
 
 // Create product - only Farmers and Kaluppa Foundation can sell
 router.post('/', authMiddleware, roleMiddleware(['Farmer', 'Kaluppa Foundation']), createProduct);
@@ -15,6 +15,6 @@ router.post('/', authMiddleware, roleMiddleware(['Farmer', 'Kaluppa Foundation']
 router.post('/buy', authMiddleware, roleMiddleware(['Kaluppa Foundation', 'Farmer', 'Buyer']), buyProduct);
 
 // Delete product (seller only)
-router.delete('/:productId', authMiddleware, deleteProduct);
+router.delete('/:productId', authMiddleware, roleMiddleware(['Farmer', 'Kaluppa Foundation']), deleteProduct);
 
 module.exports = router;

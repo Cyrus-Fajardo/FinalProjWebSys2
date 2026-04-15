@@ -23,6 +23,13 @@
   font-size: 28px;
 }
 
+.manage-users-header input {
+  min-width: 220px;
+  padding: 10px;
+  border: 1px solid #d4a574;
+  border-radius: 5px;
+}
+
 .create-btn {
   padding: 10px 20px;
   background-color: #6f4e37;

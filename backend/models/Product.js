@@ -17,6 +17,16 @@ const productSchema = new mongoose.Schema({
     type: String,
     enum: ['pieces', 'kg', 'bags']
   },
+  saleType: {
+    type: String,
+    enum: ['Retail', 'Wholesale'],
+    default: 'Retail'
+  },
+  processingBadge: {
+    type: String,
+    enum: ['self-processed', 'foundation-verified'],
+    required: false
+  },
   sellerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

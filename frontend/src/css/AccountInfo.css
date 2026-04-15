@@ -1,0 +1,72 @@
+.account-info-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f1ed;
+}
+
+.account-info-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.account-card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.account-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-card input {
+  padding: 10px;
+  border: 1px solid #d4a574;
+  border-radius: 5px;
+}
+
+.save-btn,
+.verify-btn {
+  border: none;
+  border-radius: 5px;
+  padding: 10px 14px;
+  color: white;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.save-btn {
+  background: #6f4e37;
+}
+
+.verify-btn {
+  background: #6b8e23;
+}
+
+.verify-box {
+  border-top: 1px solid #eee;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  background-color: #edf7ed;
+  color: #1b5e20;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}

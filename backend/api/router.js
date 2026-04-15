@@ -4,8 +4,17 @@ const connectToDatabase = require('../config/db');
 const { applyCorsHeaders, sendJson, handleOptions } = require('../utils/http');
 const { ApiError, login, register, refresh, logout, logoutAll, changePassword } = require('../controllers/authController');
 const User = require('../models/User');
-const { getAllUsers, createUser, updateUser, deleteUser } = require('../controllers/userController');
+const {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getMyProfile,
+  updateMyProfile,
+  submitVerification,
+} = require('../controllers/userController');
 const { getAllProducts, createProduct, deleteProduct, buyProduct } = require('../controllers/productController');
+const { checkoutOrder, getMyOrders, cancelOrder } = require('../controllers/orderController');
 const {
   getFarmerProfile,
   getAllFarmers,
@@ -19,6 +28,9 @@ const allowedRoleMap = {
   productsRead: ['Kaluppa Foundation', 'Farmer', 'Buyer'],
   productsWrite: ['Farmer', 'Kaluppa Foundation'],
   productsBuy: ['Kaluppa Foundation', 'Farmer', 'Buyer'],
+  ordersRead: ['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer', 'Buyer'],
+  ordersWrite: ['Kaluppa Foundation', 'Farmer', 'Buyer'],
+  ordersCancel: ['Kaluppa Foundation', 'DTI', 'Farmer', 'Buyer'],
   farmersRead: ['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer'],
   farmersWrite: ['Kaluppa Foundation', 'DTI', 'Farmer'],
   farmersAdmin: ['Kaluppa Foundation', 'DTI', 'Group Manager'],
@@ -141,12 +153,24 @@ module.exports = async (req, res) => {
       return runController(changePassword, req, res);
     }
 
-    await attachUser(req);
-
     if (resource === 'users') {
-      requireRole(req, allowedRoleMap.users);
+      await attachUser(req);
       req.params = req.params || {};
       req.params.userId = idOrAction;
+
+      if (segments.length === 2 && idOrAction === 'me' && req.method === 'GET') {
+        return runController(getMyProfile, req, res);
+      }
+
+      if (segments.length === 2 && idOrAction === 'me' && req.method === 'PATCH') {
+        return runController(updateMyProfile, req, res);
+      }
+
+      if (segments.length === 3 && idOrAction === 'me' && nestedAction === 'verify' && req.method === 'PATCH') {
+        return runController(submitVerification, req, res);
+      }
+
+      requireRole(req, allowedRoleMap.users);
 
       if (segments.length === 1 && req.method === 'GET') return runController(getAllUsers, req, res);
       if (segments.length === 1 && req.method === 'POST') return runController(createUser, req, res);
@@ -161,9 +185,10 @@ module.exports = async (req, res) => {
       req.params.productId = idOrAction;
 
       if (segments.length === 1 && req.method === 'GET') {
-        requireRole(req, allowedRoleMap.productsRead);
         return runController(getAllProducts, req, res);
       }
+
+      await attachUser(req);
 
       if (segments.length === 1 && req.method === 'POST') {
         requireRole(req, allowedRoleMap.productsWrite);
@@ -176,13 +201,38 @@ module.exports = async (req, res) => {
       }
 
       if (segments.length === 2 && req.method === 'DELETE') {
+        requireRole(req, allowedRoleMap.productsWrite);
         return runController(deleteProduct, req, res);
       }
 
       return sendJson(res, 405, { error: 'Method Not Allowed' });
     }
 
+    if (resource === 'orders') {
+      await attachUser(req);
+      req.params = req.params || {};
+      req.params.orderId = idOrAction;
+
+      if (segments.length === 1 && req.method === 'GET') {
+        requireRole(req, allowedRoleMap.ordersRead);
+        return runController(getMyOrders, req, res);
+      }
+
+      if (segments.length === 2 && idOrAction === 'checkout' && req.method === 'POST') {
+        requireRole(req, allowedRoleMap.ordersWrite);
+        return runController(checkoutOrder, req, res);
+      }
+
+      if (segments.length === 3 && nestedAction === 'cancel' && req.method === 'PATCH') {
+        requireRole(req, allowedRoleMap.ordersCancel);
+        return runController(cancelOrder, req, res);
+      }
+
+      return sendJson(res, 405, { error: 'Method Not Allowed' });
+    }
+
     if (resource === 'farmers') {
+      await attachUser(req);
       req.params = req.params || {};
       req.params.farmerId = idOrAction;
 

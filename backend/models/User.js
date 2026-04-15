@@ -20,6 +20,20 @@ const userSchema = new mongoose.Schema({
     enum: ['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer', 'Buyer'],
     required: true
   },
+  isVerified: {
+    type: Boolean,
+    default: function setDefaultVerification() {
+      return !['Farmer', 'Buyer'].includes(this.role);
+    }
+  },
+  verificationCertificateUrl: {
+    type: String,
+    default: ''
+  },
+  verificationSubmittedAt: {
+    type: Date,
+    default: null
+  },
   tokenVersion: {
     type: Number,
     default: 0

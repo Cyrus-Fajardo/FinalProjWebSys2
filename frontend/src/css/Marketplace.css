@@ -122,6 +122,20 @@
   font-size: 24px;
 }
 
+.market-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.market-filters input,
+.market-filters select {
+  padding: 10px;
+  border: 1px solid #d4a574;
+  border-radius: 5px;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -181,6 +195,83 @@
 
 .buy-btn:hover {
   background-color: #556b2f;
+}
+
+.cancel-listing-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #a94442;
+  color: #fff;
+  cursor: pointer;
+}
+
+.processing-badge {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.processing-badge.self {
+  color: #6f4e37;
+}
+
+.processing-badge.verified {
+  color: #2e7d32;
+}
+
+.cart-container {
+  margin-top: 30px;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cart-table th,
+.cart-table td {
+  border-bottom: 1px solid #ececec;
+  padding: 10px;
+  text-align: left;
+}
+
+.cart-table input {
+  width: 70px;
+  padding: 6px;
+}
+
+.remove-btn,
+.checkout-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: white;
+  cursor: pointer;
+}
+
+.remove-btn {
+  background: #6c757d;
+}
+
+.checkout-btn {
+  margin-top: 16px;
+  background: #6b8e23;
+}
+
+.success-message {
+  background-color: #edf7ed;
+  color: #1b5e20;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border-left: 4px solid #2e7d32;
 }
 
 .no-products {

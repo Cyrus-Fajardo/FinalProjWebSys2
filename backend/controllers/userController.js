@@ -10,6 +10,97 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const getMyProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const updateMyProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (req.body.fullname !== undefined) {
+      user.fullname = req.body.fullname;
+    }
+
+    if (req.body.email !== undefined) {
+      user.email = String(req.body.email).toLowerCase();
+    }
+
+    if (req.body.password) {
+      user.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Account info updated successfully',
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        verificationCertificateUrl: user.verificationCertificateUrl,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const submitVerification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!['Buyer', 'Farmer'].includes(user.role)) {
+      return res.status(400).json({ error: 'Verification submission is only required for Buyer and Farmer roles' });
+    }
+
+    const certificateUrl = String(req.body.certificateUrl || '').trim();
+
+    if (!certificateUrl) {
+      return res.status(400).json({ error: 'Certificate URL is required' });
+    }
+
+    user.verificationCertificateUrl = certificateUrl;
+    user.verificationSubmittedAt = new Date();
+    user.isVerified = true;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Verification submitted successfully',
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        verificationCertificateUrl: user.verificationCertificateUrl,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 const createUser = async (req, res) => {
   try {
     const { fullname, email, password, role } = req.body;
@@ -87,4 +178,12 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, createUser, updateUser, deleteUser };
+module.exports = {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getMyProfile,
+  updateMyProfile,
+  submitVerification,
+};

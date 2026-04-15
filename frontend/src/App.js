@@ -5,7 +5,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Marketplace from './pages/Marketplace';
 import ManageUsers from './pages/ManageUsers';
-import ManageFarmers from './pages/ManageFarmers';
+import FarmerProfile from './pages/FarmerProfile';
+import ManageFarmerDetails from './pages/ManageFarmerDetails';
+import AccountInfo from './pages/AccountInfo';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -15,14 +17,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/marketplace"
-          element={
-            <ProtectedRoute allowedRoles={['Farmer', 'Buyer', 'Kaluppa Foundation']}>
-              <Marketplace />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/marketplace" element={<Marketplace />} />
 
         <Route
           path="/manage-users"
@@ -34,15 +29,33 @@ function App() {
         />
 
         <Route
-          path="/manage-farmers"
+          path="/farmer-profile"
           element={
-            <ProtectedRoute allowedRoles={['Farmer', 'Kaluppa Foundation', 'DTI', 'Group Manager']}>
-              <ManageFarmers />
+            <ProtectedRoute allowedRoles={['Farmer']}>
+              <FarmerProfile />
             </ProtectedRoute>
           }
         />
 
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/manage-farmer-details"
+          element={
+            <ProtectedRoute allowedRoles={['Kaluppa Foundation', 'DTI', 'Group Manager']}>
+              <ManageFarmerDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/account-info"
+          element={
+            <ProtectedRoute allowedRoles={['Farmer', 'Buyer', 'Kaluppa Foundation', 'DTI', 'Group Manager']}>
+              <AccountInfo />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/" element={<Navigate to="/marketplace" />} />
       </Routes>
     </Router>
   );

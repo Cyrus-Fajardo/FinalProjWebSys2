@@ -4,7 +4,8 @@ import { authAPI, authHelpers } from '../js/api';
 import '../css/Sidebar.css';
 
 function Sidebar() {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const isAuthenticated = !!(localStorage.getItem('token') && user);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -19,36 +20,33 @@ function Sidebar() {
   };
 
   const getMenuItems = () => {
+    if (!isAuthenticated) {
+      return [];
+    }
+
     switch (user.role) {
       case 'Kaluppa Foundation':
         return [
-          { path: '/login', label: 'Login' },
           { path: '/marketplace', label: 'Marketplace' },
-          { path: '/manage-farmers', label: 'Farmer Profiles' },
+          { path: '/manage-farmer-details', label: 'Manage Farmer Details' },
           { path: '/manage-users', label: 'Manage Users' }
         ];
       case 'DTI':
         return [
-          { path: '/login', label: 'Login' },
-          { path: '/manage-farmers', label: 'Farmer Profiles' },
+          { path: '/manage-farmer-details', label: 'Manage Farmer Details' },
           { path: '/manage-users', label: 'Manage Users' }
         ];
       case 'Group Manager':
         return [
-          { path: '/login', label: 'Login' },
-          { path: '/manage-farmers', label: 'Farmer Profiles' }
+          { path: '/manage-farmer-details', label: 'Manage Farmer Details' }
         ];
       case 'Farmer':
         return [
-          { path: '/login', label: 'Login' },
-          { path: '/register', label: 'Register' },
-          { path: '/manage-farmers', label: 'Farmer Profile' },
+          { path: '/farmer-profile', label: 'Farmer Profile' },
           { path: '/marketplace', label: 'Marketplace' }
         ];
       case 'Buyer':
         return [
-          { path: '/login', label: 'Login' },
-          { path: '/register', label: 'Register' },
           { path: '/marketplace', label: 'Marketplace' }
         ];
       default:
@@ -61,9 +59,24 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h2>KapeKONEK</h2>
-        <p className="user-info">{user.fullname}</p>
-        <p className="user-role">{user.role}</p>
+        <Link to={isAuthenticated ? '/account-info' : '/login'} className="account-shortcut">
+          <div className="person-icon" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M4 20c1.8-3.3 4.6-5 8-5s6.2 1.7 8 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </div>
+          <span>{isAuthenticated ? 'My Account' : 'Log in'}</span>
+        </Link>
+
+        {isAuthenticated && (
+          <>
+            <h2>KapeKONEK</h2>
+            <p className="user-info">{user.fullname}</p>
+            <p className="user-role">{user.role}</p>
+            {user.isVerified && <p className="verified-badge">Verified</p>}
+          </>
+        )}
       </div>
 
       <nav className="sidebar-nav">
@@ -77,7 +90,9 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        {isAuthenticated ? (
+          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        ) : null}
       </div>
     </aside>
   );

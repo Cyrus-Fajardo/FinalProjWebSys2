@@ -59,6 +59,18 @@ export const canManageFarmers = () => {
   return ['Kaluppa Foundation', 'DTI', 'Group Manager', 'Farmer'].includes(user.role);
 };
 
+export const canManageFarmerDetails = () => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  return ['Kaluppa Foundation', 'DTI', 'Group Manager'].includes(user.role);
+};
+
+export const canAccessFarmerProfile = () => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  return ['Farmer'].includes(user.role);
+};
+
 export const getSellingOptions = (role) => {
   switch (role) {
     case 'Farmer':

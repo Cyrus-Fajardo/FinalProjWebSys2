@@ -160,6 +160,8 @@ const buildUserPayload = (user) => ({
   email: user.email,
   role: user.role,
   fullname: user.fullname,
+  isVerified: user.isVerified,
+  verificationCertificateUrl: user.verificationCertificateUrl || '',
 });
 
 const loginUser = async ({ email, password }, metadata = {}) => {

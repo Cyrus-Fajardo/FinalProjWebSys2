@@ -23,8 +23,11 @@ function Register() {
       authHelpers.setToken(data.token);
       authHelpers.setUser(data.user);
 
-      // Navigate to marketplace
-      navigate('/marketplace');
+      if (role === 'Farmer') {
+        navigate('/farmer-profile');
+      } else {
+        navigate('/marketplace');
+      }
     } catch (err) {
       setError(err.message || 'An error occurred. Please try again.');
       console.error('Registration error:', err);

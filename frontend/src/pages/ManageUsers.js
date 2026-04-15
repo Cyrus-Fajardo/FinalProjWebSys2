@@ -9,6 +9,7 @@ function ManageUsers() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [newUser, setNewUser] = useState({
     fullname: '',
     email: '',
@@ -77,12 +78,29 @@ function ManageUsers() {
     setEditingUser({ fullname: user.fullname, email: user.email, role: user.role });
   };
 
+  const filteredUsers = users.filter((user) => {
+    const normalized = searchQuery.trim().toLowerCase();
+    if (!normalized) return true;
+
+    return (
+      String(user.fullname || '').toLowerCase().includes(normalized)
+      || String(user.email || '').toLowerCase().includes(normalized)
+      || String(user.role || '').toLowerCase().includes(normalized)
+    );
+  });
+
   return (
     <div className="manage-users-container">
       <Sidebar />
       <div className="manage-users-content">
         <div className="manage-users-header">
           <h1>Manage Users</h1>
+          <input
+            type="text"
+            placeholder="Search accounts"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <button
             className="create-btn"
             onClick={() => setShowCreateForm(!showCreateForm)}
@@ -160,7 +178,7 @@ function ManageUsers() {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {filteredUsers.map(user => (
                   <tr key={user._id} className={editingId === user._id ? 'editing' : ''}>
                     <td>
                       {editingId === user._id ? (

@@ -253,6 +253,20 @@ export const productAPI = {
 export const userAPI = {
   getAll: () => apiCall('/users'),
 
+  getMe: () => apiCall('/users/me'),
+
+  updateMe: (userData) =>
+    apiCall('/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(userData),
+    }),
+
+  verifyMe: (certificateUrl) =>
+    apiCall('/users/me/verify', {
+      method: 'PATCH',
+      body: JSON.stringify({ certificateUrl }),
+    }),
+
   create: (userData) =>
     apiCall('/users', {
       method: 'POST',
@@ -292,6 +306,22 @@ export const farmerAPI = {
     apiCall('/farmers/batch/update', {
       method: 'PATCH',
       body: JSON.stringify({ updates }),
+    }),
+};
+
+export const orderAPI = {
+  getMyOrders: () => apiCall('/orders'),
+
+  checkout: (items) =>
+    apiCall('/orders/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ items }),
+    }),
+
+  cancel: (orderId, reason) =>
+    apiCall(`/orders/${orderId}/cancel`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reason }),
     }),
 };
 
