@@ -61,6 +61,26 @@ function Marketplace() {
     setShowOrdersPanel(false);
   };
 
+  const toggleCartPanel = () => {
+    setShowCartPanel((prev) => {
+      const next = !prev;
+      if (next) {
+        setShowOrdersPanel(false);
+      }
+      return next;
+    });
+  };
+
+  const toggleOrdersPanel = () => {
+    setShowOrdersPanel((prev) => {
+      const next = !prev;
+      if (next) {
+        setShowCartPanel(false);
+      }
+      return next;
+    });
+  };
+
   const fetchProducts = useCallback(async () => {
     try {
       const data = await productAPI.getAll();
@@ -281,6 +301,11 @@ function Marketplace() {
       return;
     }
 
+    const confirmed = window.confirm('Confirm checkout for all items currently in your cart?');
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await orderAPI.checkout(cart.map((item) => ({
         productId: item.productId,
@@ -297,10 +322,16 @@ function Marketplace() {
   };
 
   const handleCancelOrder = async (orderId) => {
+    const confirmed = window.confirm('Cancel this order? The cancellation fee will be applied and products will be returned to the marketplace.');
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await orderAPI.cancel(orderId, 'Cancelled by user');
       setCheckoutMessage('Order cancelled. Cancellation fee has been applied.');
       fetchOrders();
+      fetchProducts();
     } catch (err) {
       setCartWarning(err.message || 'Failed to cancel order.');
     }
@@ -439,13 +470,12 @@ function Marketplace() {
 
           <div className="market-filters">
             <select value={searchType} onChange={(e) => setSearchType(e.target.value)}>
-                <option value="">All Product Types</option>
-                <option value="Coffee Seedlings">Coffee Seedlings</option>
-                <option value="Coffee Cherries">Coffee Cherries</option>
-                <option value="Processed Coffee">Processed Coffee</option>
-                <option value="Fertilizers">Fertilizers</option>
+              <option value="">All Product Types</option>
+              <option value="Coffee Seedlings">Coffee Seedlings</option>
+              <option value="Coffee Cherries">Coffee Cherries</option>
+              <option value="Processed Coffee">Processed Coffee</option>
+              <option value="Fertilizers">Fertilizers</option>
             </select>
-            </div>
 
             <div className="filter-group">
               <span className="filter-label">Date Range</span>
@@ -464,6 +494,7 @@ function Marketplace() {
                 <input type="number" min="1" placeholder="Max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} aria-label="Maximum price" />
               </div>
             </div>
+          </div>
 
           {loading ? (
             <p>Loading products...</p>
@@ -500,13 +531,13 @@ function Marketplace() {
         {(showCartPanel || showOrdersPanel) && <div className="floating-overlay" onClick={closeFloatingPanels} />}
 
         <div className="floating-actions">
-          <button className="floating-btn" onClick={() => setShowCartPanel((prev) => !prev)}>
+          <button className="floating-btn" onClick={toggleCartPanel}>
             <span className="icon" aria-hidden="true">🛒</span>
             <span className="badge">{cartItemCount}</span>
           </button>
 
           {isAuthenticated && (
-            <button className="floating-btn orders" onClick={() => setShowOrdersPanel((prev) => !prev)}>
+            <button className="floating-btn orders" onClick={toggleOrdersPanel}>
               <span className="icon" aria-hidden="true">📦</span>
               <span className="badge">{orders.length}</span>
             </button>
